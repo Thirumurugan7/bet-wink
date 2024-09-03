@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import Abi from './abi.json';
 
-const HARD_CODED_EPOCH = 306596; // Hard-coded epoch value
+const HARD_CODED_EPOCH = 306602; // Hard-coded epoch value
 
 const weiValue = "1000000000000000";
 const etherValue = ethers.utils.formatEther(weiValue);
@@ -58,10 +58,38 @@ export async function getBalance(contract, address) {
   return serializeBigInt(balance); // Ensure the balance is JSON-serializable
 }
 
-export async function betBull(contract, value, epoch) {
+export async function betBull( value) {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []); // Request access to MetaMask accounts
+
+  const signer = provider.getSigner(); // Get the signer from the provider
+  const address = await signer.getAddress(); // Get the address from the signer
+
+  const ContractAddress = "0x18B2A687610328590Bc8F2e5fEdDe3b582A49cdA";
+  const contract = new ethers.Contract(
+    ContractAddress,
+    Abi,
+    signer
+  );
+
+
+
+  console.log("instance",contract);
   const parsedValue = ethers.utils.parseEther(value);
+
+  console.log("val",parsedValue);
+
+
   console.log(value, HARD_CODED_EPOCH, etherValue)
-  const BetBull = await contract.betBull(HARD_CODED_EPOCH, {value : parsedValue , gasLimit: 50000 });
+
+const actual_epoch = await contract.currentEpoch();
+
+  console.log("actual epoch", actual_epoch);
+
+  const epoch_in_string = actual_epoch.toString()
+console.log("in string", epoch_in_string);
+
+  const BetBull = await contract.betBull(epoch_in_string, {value : parsedValue  });
   await BetBull.wait();
 }
 
